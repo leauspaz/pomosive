@@ -1,63 +1,330 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pomosive</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='none' stroke='%23e74c3c' stroke-width='8'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23e74c3c'/%3E%3Cline x1='50' y1='50' x2='50' y2='20' stroke='%23e74c3c' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="logo-text">Pomosive</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="soundToggle" title="Toggle sound">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="themeToggle" title="Toggle theme">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="dataBtn" title="Import/Export data">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </button>
+      </div>
+    </header>
 
-  <button class="toggle" onclick="toggle()">Dark Mode</button>
-  <div class="clock-container">
-    <div class="clock">
-      <div class="needle hour"></div>
-      <div class="needle minute"></div>
-      <div class="needle second"></div>
-      <div class="center-point"></div>
-    </div>
-    <div class="time">
-      00:00:00:00
-    </div>
-    <div id="controls">
-      <!-- <button id="startBtn" onclick="start()">Start</button> -->
-      <!-- <button id="stopBtn" onclick="stop()">Stop</button> -->
-      <center>
-        <select name="rating" id="rating" onclick="rating()">
-          <option value="distracted">Distracted</option>
-          <option value="ok">Okay-ish</option>
-          <option value="focused">Focused</option>
-          <option value="flow">Flow</option>
-        </select>
-      </center>
-      <br>
-      <center>
-        <input type="number" id="userinput" value="10">
-        <!-- <button id="timerControlBtn" onclick="timerControl()">Start</button> -->
-        <button id="play" onclick="play()">Play</button>
-        <button id="pause" onclick="pause()">Pause</button>
+    <!-- Main Timer -->
+    <main class="main">
+      <div class="timer-section">
+        <div class="timer-container">
+          <svg class="timer-ring" viewBox="0 0 120 120">
+            <circle class="timer-ring-bg" cx="60" cy="60" r="54"/>
+            <circle class="timer-ring-progress" id="timerProgress" cx="60" cy="60" r="54"/>
+          </svg>
+          <div class="timer-display">
+            <div class="timer-phase" id="timerPhase">Ready</div>
+            <div class="timer-time" id="timerTime">00:00</div>
+            <div class="timer-overtime" id="timerOvertime"></div>
+          </div>
+        </div>
 
-        <!-- <button id="playBtn" onclick="play()">Start</button> -->
-        <!-- <button id="pauseBtn" onclick="pause()">Pause</button> -->
-        <button id="resetBtn" onclick="reset()">Reset</button>
-        <!-- <button id="testbtn" onclick="test()">Test</button> -->
-      </center>
-      <br>
-    </div>
-    <div class="pomostat">
-      Cons. Pomo: 0.0 sec
-      <br>
-      Daily Pomo: 0.0 sec
-      <br>
-      Recent Break: 0.0 sec
-      <br>
-      Daily Break: 0.0 sec
+        <div class="timer-controls">
+          <button class="control-btn control-btn--primary" id="playBtn" title="Start">
+            <svg class="control-icon" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <span>Start</span>
+          </button>
+          <button class="control-btn" id="pauseBtn" title="Pause" disabled>
+            <svg class="control-icon" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"/>
+              <rect x="14" y="4" width="4" height="16"/>
+            </svg>
+            <span>Pause</span>
+          </button>
+          <button class="control-btn" id="resetBtn" title="Reset">
+            <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+            </svg>
+            <span>Reset</span>
+          </button>
+          <button class="control-btn" id="skipBtn" title="Skip to break/end">
+            <svg class="control-icon" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 4 15 12 5 20 5 4"/>
+              <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>Skip</span>
+          </button>
+        </div>
+
+        <div class="timer-info">
+          <div class="info-item">
+            <span class="info-label">Block</span>
+            <span class="info-value" id="blockDuration">-- min</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Break</span>
+            <span class="info-value" id="breakDuration">-- min</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Today</span>
+            <span class="info-value" id="todayTotal">0 min</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Streak</span>
+            <span class="info-value" id="streakCount">0 days</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rating Overlay (shown after timer ends) -->
+      <div class="rating-overlay" id="ratingOverlay">
+        <div class="rating-card">
+          <h2 class="rating-title">How was that session?</h2>
+          <p class="rating-subtitle" id="ratingSubtitle">You worked for 25 minutes</p>
+
+          <div class="rating-options">
+            <button class="rating-btn" data-rating="distracted">
+              <div class="rating-icon rating-icon--distracted">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="8" y1="15" x2="16" y2="15"/>
+                  <line x1="9" y1="9" x2="9.01" y2="9"/>
+                  <line x1="15" y1="9" x2="15.01" y2="9"/>
+                </svg>
+              </div>
+              <span class="rating-label">Distracted</span>
+              <span class="rating-desc">Mind wandered a lot</span>
+            </button>
+
+            <button class="rating-btn" data-rating="okay">
+              <div class="rating-icon rating-icon--okay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="8" y1="15" x2="16" y2="15"/>
+                  <circle cx="9" cy="10" r="1" fill="currentColor"/>
+                  <circle cx="15" cy="10" r="1" fill="currentColor"/>
+                </svg>
+              </div>
+              <span class="rating-label">Okay-ish</span>
+              <span class="rating-desc">Got some things done</span>
+            </button>
+
+            <button class="rating-btn" data-rating="focused">
+              <div class="rating-icon rating-icon--focused">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="12" r="3"/>
+                  <line x1="12" y1="1" x2="12" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="23"/>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                  <line x1="1" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="12" x2="23" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+              </div>
+              <span class="rating-label">Focused</span>
+              <span class="rating-desc">In the zone</span>
+            </button>
+
+            <button class="rating-btn" data-rating="flow">
+              <div class="rating-icon rating-icon--flow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+              </div>
+              <span class="rating-label">Flow</span>
+              <span class="rating-desc">Lost track of time</span>
+            </button>
+          </div>
+
+          <div class="rating-note">
+            <input type="text" class="note-input" id="sessionNote" placeholder="What did you work on? (optional)" maxlength="200">
+          </div>
+
+          <div class="rating-actions">
+            <button class="btn btn--primary" id="continueBtn">Continue</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- First Run Setup -->
+      <div class="setup-overlay" id="setupOverlay">
+        <div class="setup-card">
+          <h2 class="setup-title">Welcome to Pomosive</h2>
+          <p class="setup-subtitle">Adaptive focus timer that learns from you</p>
+
+          <div class="setup-field">
+            <label class="setup-label">Starting work block</label>
+            <div class="preset-buttons">
+              <button class="preset-btn" data-min="5">5 min</button>
+              <button class="preset-btn" data-min="10">10 min</button>
+              <button class="preset-btn" data-min="15">15 min</button>
+              <button class="preset-btn" data-min="25">25 min</button>
+              <button class="preset-btn" data-min="45">45 min</button>
+            </div>
+            <input type="number" class="setup-input" id="customDuration" min="1" max="90" value="25" placeholder="Custom">
+          </div>
+
+          <div class="setup-field">
+            <label class="setup-label">Sound</label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="soundSetting" checked>
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">Enabled</span>
+            </div>
+          </div>
+
+          <button class="btn btn--primary btn--full" id="startFirstSession">Start First Session</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Stats Section -->
+    <section class="stats-section" id="statsSection">
+      <div class="stats-header">
+        <h2 class="stats-title">Your Focus</h2>
+        <div class="stats-tabs">
+          <button class="stats-tab active" data-view="today">Today</button>
+          <button class="stats-tab" data-view="week">This Week</button>
+          <button class="stats-tab" data-view="month">This Month</button>
+        </div>
+      </div>
+
+      <div class="stats-chart-container">
+        <canvas id="statsChart" width="800" height="300"></canvas>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotalTime">0h 0m</div>
+          <div class="stat-label">Total Focus Time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSessions">0</div>
+          <div class="stat-label">Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statAvgRating">--</div>
+          <div class="stat-label">Avg. Focus</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statBestBlock">--</div>
+          <div class="stat-label">Best Block</div>
+        </div>
+      </div>
+
+      <div class="sessions-list" id="sessionsList">
+        <h3 class="sessions-title">Recent Sessions</h3>
+        <div class="sessions-empty">No sessions yet today</div>
+      </div>
+    </section>
+
+    <!-- Data Modal -->
+    <div class="modal-overlay" id="dataModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Data Management</h3>
+          <button class="modal-close" id="modalClose">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="data-actions">
+            <div class="data-action">
+              <h4>Export</h4>
+              <p>Download your session history</p>
+              <div class="data-buttons">
+                <button class="btn btn--secondary" id="exportJson">JSON</button>
+                <button class="btn btn--secondary" id="exportCsv">CSV</button>
+                <button class="btn btn--secondary" id="exportMd">Markdown</button>
+              </div>
+            </div>
+            <div class="data-action">
+              <h4>Import</h4>
+              <p>Restore from a previous backup</p>
+              <input type="file" class="file-input" id="importFile" accept=".json">
+              <button class="btn btn--secondary" id="importBtn">Choose File</button>
+            </div>
+            <div class="data-action data-action--danger">
+              <h4>Clear All Data</h4>
+              <p>This cannot be undone</p>
+              <button class="btn btn--danger" id="clearData">Clear Everything</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Keyboard Shortcuts Hint -->
+    <div class="shortcuts-hint" id="shortcutsHint">
+      <div class="shortcuts-content">
+        <h4>Keyboard Shortcuts</h4>
+        <div class="shortcut"><kbd>Space</kbd> Play / Pause</div>
+        <div class="shortcut"><kbd>R</kbd> Reset</div>
+        <div class="shortcut"><kbd>S</kbd> Skip</div>
+        <div class="shortcut"><kbd>1-4</kbd> Rate session</div>
+        <div class="shortcut"><kbd>D</kbd> Toggle dark mode</div>
+        <div class="shortcut"><kbd>?</kbd> Show / hide this</div>
+      </div>
+    </div>
   </div>
-  <script src="script_clean.js"></script>
-</body>
 
+  <script src="storage.js"></script>
+  <script src="chart.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+  </script>
+</body>
 </html>
