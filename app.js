@@ -343,6 +343,7 @@ const App = {
     } else if (this.state === TimerState.BREAK_PAUSED) {
       this.resumeBreak();
     }
+  },
 
   togglePlayPause() {
     if (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING) {
@@ -399,7 +400,6 @@ const App = {
     this.timerInterval = null;
 
     if (this.phase === 'work') {
-      // End work session early, show rating
       if (this.currentSession) {
         this.currentSession.duration = Math.round(this.currentSession.duration);
         Storage.saveSession({ ...this.currentSession });
@@ -411,7 +411,6 @@ const App = {
       this.updateTitle();
       showToast('Session ended early', 'warning');
     } else {
-      // End break early
       if (this.currentBreak) {
         this.currentBreak.duration = Math.round(this.currentBreak.duration);
         Storage.saveSession({ ...this.currentBreak });
@@ -439,9 +438,7 @@ const App = {
     this.currentBreak = null;
     this.updateUI();
     this.updateTitle();
-    showToast('Timer reset', 'info');
-  },
-
+      showToast('Timer reset', 'info');
   },
 
   startWork() {
