@@ -131,7 +131,7 @@ function calcBreakDuration(workDuration, rating) {
 
 function getRatingColor(rating) {
   const colors = {
-    distracted: '#e74c3c',
+    distracted: '#800020',
     okay: '#f39c12',
     focused: '#3498db',
     flow: '#27ae60'
@@ -331,6 +331,7 @@ const App = {
     this.overtime = 0;
     this.phase = 'work';
     this.state = TimerState.RUNNING;
+    this.timerStartTime = Date.now();
 
     this.currentSession = {
       id: generateId(),
@@ -359,6 +360,8 @@ const App = {
     if (breakDuration <= 0) {
       // No break needed, go straight to next work
       this.state = TimerState.IDLE;
+      this.overtime = 0;
+      this.phase = 'work';
       this.updateUI();
       showToast('No break needed. Ready for next session.', 'success');
       return;
@@ -369,6 +372,7 @@ const App = {
     this.overtime = 0;
     this.phase = 'break';
     this.state = TimerState.BREAK_RUNNING;
+    this.timerStartTime = Date.now();
 
     this.currentBreak = {
       id: generateId(),
@@ -466,13 +470,13 @@ const App = {
   },
 
   pause() {
-    if (this.state === TimerState.RUNNING) {
+    if (this.state === TimerState.RUNNING || this.state === TimerState.OVERTIME) {
       this.state = TimerState.PAUSED;
       clearInterval(this.timerInterval);
       this.updateUI();
       this.updateTitle();
       showToast('Paused', 'info');
-    } else if (this.state === TimerState.BREAK_RUNNING) {
+    } else if (this.state === TimerState.BREAK_RUNNING || this.state === TimerState.BREAK_OVERTIME) {
       this.state = TimerState.BREAK_PAUSED;
       clearInterval(this.timerInterval);
       this.updateUI();
@@ -483,7 +487,14 @@ const App = {
 
   resume() {
     if (this.state === TimerState.PAUSED) {
-      this.state = TimerState.RUNNING;
+      if (this.phase === 'work' && this.overtime > 0) {
+        this.state = TimerState.OVERTIME;
+      } else if (this.phase === 'break' && this.overtime > 0) {
+        this.state = TimerState.BREAK_OVERTIME;
+      } else {
+        this.state = TimerState.RUNNING;
+      }
+      this.timerStartTime = Date.now() - (this.totalDuration + this.overtime) * 1000;
       this.startTimer();
       this.updateUI();
       this.updateTitle();
@@ -492,7 +503,12 @@ const App = {
 
   resumeBreak() {
     if (this.state === TimerState.BREAK_PAUSED) {
-      this.state = TimerState.BREAK_RUNNING;
+      if (this.overtime > 0) {
+        this.state = TimerState.BREAK_OVERTIME;
+      } else {
+        this.state = TimerState.BREAK_RUNNING;
+      }
+      this.timerStartTime = Date.now() - (this.totalDuration + this.overtime) * 1000;
       this.startTimer();
       this.updateUI();
       this.updateTitle();
@@ -504,10 +520,12 @@ const App = {
 
     if (this.currentSession && this.currentSession.duration > 0) {
       this.currentSession.duration = Math.round(this.currentSession.duration);
+      this.currentSession.overtime = Math.round(this.overtime);
       Storage.saveSession({ ...this.currentSession });
     }
     if (this.currentBreak && this.currentBreak.duration > 0) {
-      this.currentBreak.duration = Math.round(this.currentBreak.duration);
+      this.currentBreak.duration = Math.round(this.currentBreak.duration + this.overtime);
+      this.currentBreak.overtime = Math.round(this.overtime);
       Storage.saveSession({ ...this.currentBreak });
     }
 
@@ -794,6 +812,9 @@ const App = {
     } else if (this.state === TimerState.OVERTIME) {
       const time = this.formatTime(Math.floor(this.overtime));
       document.title = `+${time} overtime — Pomosive`;
+    } else if (this.state === TimerState.BREAK_OVERTIME) {
+      const time = this.formatTime(Math.floor(this.overtime));
+      document.title = `+${time} break overtime — Pomosive`;
     } else if (this.state === TimerState.BREAK_RUNNING || this.state === TimerState.BREAK_PAUSED) {
       const time = this.formatTime(Math.max(0, Math.ceil(this.remaining)));
       document.title = `☕ ${time} break — Pomosive`;
@@ -1114,12 +1135,7 @@ const App = {
 
   handleVisibility() {
     if (document.hidden) return;
-    // When tab becomes visible, sync timer (handles background throttling)
-    if (this.currentSession && (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING)) {
-      // Recalculate remaining based on actual time
-      const now = Date.now();
-      // This is a simplified sync - in production you'd track start timestamps
-    }
+    // Timer uses timestamp-based drift correction, no manual sync needed
   },
 
   // ============================================

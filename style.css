@@ -37,9 +37,9 @@
   --border-color: rgba(255, 255, 255, 0.06);
   --border-hover: rgba(255, 255, 255, 0.12);
 
-  --accent-color: #e74c3c;
-  --accent-hover: #c0392b;
-  --accent-muted: rgba(231, 76, 60, 0.15);
+  --accent-color: #800020;
+  --accent-hover: #600018;
+  --accent-muted: rgba(128, 0, 32, 0.15);
 
   --success: #27ae60;
   --success-muted: rgba(39, 174, 96, 0.15);
@@ -64,9 +64,9 @@ html.light {
   --border-color: rgba(0, 0, 0, 0.06);
   --border-hover: rgba(0, 0, 0, 0.12);
 
-  --accent-color: #e74c3c;
-  --accent-hover: #c0392b;
-  --accent-muted: rgba(231, 76, 60, 0.1);
+  --accent-color: #800020;
+  --accent-hover: #600018;
+  --accent-muted: rgba(128, 0, 32, 0.1);
 }
 
 /* ============================================
@@ -508,12 +508,12 @@ body {
   height: 22px;
 }
 
-.rating-icon--distracted { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+.rating-icon--distracted { background: rgba(128, 0, 32, 0.15); color: #800020; }
 .rating-icon--okay { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
 .rating-icon--focused { background: rgba(52, 152, 219, 0.15); color: #3498db; }
 .rating-icon--flow { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
 
-.rating-btn.selected .rating-icon--distracted { background: #e74c3c; color: white; }
+.rating-btn.selected .rating-icon--distracted { background: #800020; color: white; }
 .rating-btn.selected .rating-icon--okay { background: #f39c12; color: white; }
 .rating-btn.selected .rating-icon--focused { background: #3498db; color: white; }
 .rating-btn.selected .rating-icon--flow { background: #27ae60; color: white; }
@@ -713,13 +713,13 @@ body {
 
 .btn--danger {
   background: transparent;
-  color: #e74c3c;
-  border-color: rgba(231, 76, 60, 0.3);
+  color: #800020;
+  border-color: rgba(128, 0, 32, 0.3);
 }
 
 .btn--danger:hover {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: #e74c3c;
+  background: rgba(128, 0, 32, 0.1);
+  border-color: #800020;
 }
 
 .btn--full {
@@ -884,7 +884,7 @@ body {
   height: 16px;
 }
 
-.session-rating--distracted { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+.session-rating--distracted { background: rgba(128, 0, 32, 0.15); color: #800020; }
 .session-rating--okay { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
 .session-rating--focused { background: rgba(52, 152, 219, 0.15); color: #3498db; }
 .session-rating--flow { background: rgba(39, 174, 96, 0.15); color: #27ae60; }

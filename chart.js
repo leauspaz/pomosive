@@ -24,7 +24,7 @@ class PomosiveChart {
 
   // Get CSS variable color
   getColor(name) {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#e74c3c';
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#800020';
   }
 
   // Bar chart for daily sessions
@@ -176,7 +176,7 @@ class PomosiveChart {
 
     const ratings = ['distracted', 'okay', 'focused', 'flow'];
     const colors = {
-      distracted: '#e74c3c',
+      distracted: '#800020',
       okay: '#f39c12',
       focused: '#3498db',
       flow: '#27ae60'
