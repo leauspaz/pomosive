@@ -628,7 +628,7 @@ body {
 
 .preset-btn.selected {
   background: var(--accent-color);
-  color: white;
+  color: #000000;
   border-color: var(--accent-color);
 }
 

@@ -215,8 +215,9 @@ const App = {
       timerTime: document.getElementById('timerTime'),
       timerOvertime: document.getElementById('timerOvertime'),
       timerProgress: document.getElementById('timerProgress'),
-      playBtn: document.getElementById('playBtn'),
-      pauseBtn: document.getElementById('pauseBtn'),
+      playPauseBtn: document.getElementById('playPauseBtn'),
+      playPauseIcon: document.getElementById('playPauseIcon'),
+      playPauseLabel: document.getElementById('playPauseLabel'),
       resetBtn: document.getElementById('resetBtn'),
       skipBtn: document.getElementById('skipBtn'),
       blockDuration: document.getElementById('blockDuration'),
@@ -257,8 +258,7 @@ const App = {
 
   bindEvents() {
     // Timer controls
-    this.els.playBtn.addEventListener('click', () => this.play());
-    this.els.pauseBtn.addEventListener('click', () => this.pause());
+    this.els.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
     this.els.resetBtn.addEventListener('click', () => this.reset());
     this.els.skipBtn.addEventListener('click', () => this.skip());
 
