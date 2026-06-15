@@ -64,9 +64,9 @@ html.light {
   --border-color: rgba(0, 0, 0, 0.06);
   --border-hover: rgba(0, 0, 0, 0.12);
 
-  --accent-color: #ffffff;
-  --accent-hover: #cccccc;
-  --accent-muted: rgba(255, 255, 255, 0.1);
+  --accent-color: #1a1a2e;
+  --accent-hover: #33334d;
+  --accent-muted: rgba(26, 26, 46, 0.1);
 }
 
 /* ============================================
@@ -175,6 +175,12 @@ body {
 }
 
 .icon-btn.active {
+  color: var(--accent-color);
+  background: var(--accent-muted);
+  border-color: var(--accent-color);
+}
+
+html.light .icon-btn.active {
   color: var(--accent-color);
   background: var(--accent-muted);
   border-color: var(--accent-color);
@@ -344,7 +350,7 @@ body {
 
 .control-btn--primary {
   background: var(--accent-color);
-  color: white;
+  color: var(--bg-primary);
   border-color: var(--accent-color);
 }
 
@@ -539,7 +545,7 @@ body {
 .rating-icon--focused { background: rgba(52, 152, 219, 0.15); color: #3498db; }
 .rating-icon--flow { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
 
-.rating-btn.selected .rating-icon--distracted { background: #ffffff; color: white; }
+.rating-btn.selected .rating-icon--distracted { background: #ffffff; color: var(--bg-primary); }
 .rating-btn.selected .rating-icon--okay { background: #f39c12; color: white; }
 .rating-btn.selected .rating-icon--focused { background: #3498db; color: white; }
 .rating-btn.selected .rating-icon--flow { background: #27ae60; color: white; }
@@ -628,7 +634,7 @@ body {
 
 .preset-btn.selected {
   background: var(--accent-color);
-  color: #000000;
+  color: var(--bg-primary);
   border-color: var(--accent-color);
 }
 
@@ -717,7 +723,7 @@ body {
 
 .btn--primary {
   background: var(--accent-color);
-  color: white;
+  color: var(--bg-primary);
 }
 
 .btn--primary:hover {

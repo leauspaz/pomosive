@@ -206,6 +206,9 @@ const App = {
 
     // Update title
     this.updateTitle();
+
+    // Ensure block duration is displayed
+    this.els.blockDuration.textContent = `${this.lastBlockDuration} min`;
   },
 
   cacheElements() {
@@ -308,34 +311,19 @@ const App = {
       if (e.target === this.els.dataModal) this.hideDataModal();
     });
 
-    // Block duration input - click to edit
+    // Block duration - click to cycle through presets
     const blockWrapper = document.getElementById('blockInputWrapper');
-    if (blockWrapper && this.els.blockInput) {
+    const presets = [5, 10, 15, 20, 25, 30];
+    if (blockWrapper && this.els.blockDuration) {
       blockWrapper.addEventListener('click', (e) => {
         if (this.state !== TimerState.IDLE) return;
-        if (e.target === this.els.blockInput) return;
-        this.els.blockDuration.style.display = 'none';
-        this.els.blockInput.style.display = 'block';
-        this.els.blockInput.value = this.lastBlockDuration;
-        this.els.blockInput.focus();
-        this.els.blockInput.select();
-      });
-
-      this.els.blockInput.addEventListener('blur', () => {
-        const val = parseInt(this.els.blockInput.value);
-        if (val && val >= 1 && val <= 90) {
-          this.lastBlockDuration = val;
-          Settings.lastBlockDuration = val;
-          this.els.blockDuration.textContent = `${val} min`;
-        }
-        this.els.blockInput.style.display = 'none';
-        this.els.blockDuration.style.display = 'block';
-      });
-
-      this.els.blockInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          this.els.blockInput.blur();
-        }
+        const currentIdx = presets.indexOf(this.lastBlockDuration);
+        const nextIdx = (currentIdx + 1) % presets.length;
+        const nextVal = presets[nextIdx];
+        this.lastBlockDuration = nextVal;
+        Settings.lastBlockDuration = nextVal;
+        this.els.blockDuration.textContent = `${nextVal} min`;
+        showToast(`Block set to ${nextVal} min`, 'info');
       });
     }
 
@@ -355,6 +343,105 @@ const App = {
     } else if (this.state === TimerState.BREAK_PAUSED) {
       this.resumeBreak();
     }
+
+  togglePlayPause() {
+    if (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING) {
+      this.pause();
+    } else {
+      this.play();
+    }
+  },
+
+  pause() {
+    if (this.state === TimerState.RUNNING) {
+      this.state = TimerState.PAUSED;
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+      this.updateUI();
+      this.updateTitle();
+      showToast('Paused', 'info');
+    } else if (this.state === TimerState.BREAK_RUNNING) {
+      this.state = TimerState.BREAK_PAUSED;
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+      this.updateUI();
+      this.updateTitle();
+      showToast('Break paused', 'info');
+    }
+  },
+
+  resume() {
+    if (this.state === TimerState.PAUSED) {
+      this.state = TimerState.RUNNING;
+      this.timerStartTime = Date.now() - (this.totalDuration - this.remaining) * 1000;
+      this.startTimer();
+      this.updateUI();
+      this.updateTitle();
+      showToast('Resumed', 'info');
+    }
+  },
+
+  resumeBreak() {
+    if (this.state === TimerState.BREAK_PAUSED) {
+      this.state = TimerState.BREAK_RUNNING;
+      this.timerStartTime = Date.now() - (this.totalDuration - this.remaining) * 1000;
+      this.startTimer();
+      this.updateUI();
+      this.updateTitle();
+      showToast('Break resumed', 'info');
+    }
+  },
+
+  skip() {
+    if (this.state === TimerState.IDLE) return;
+
+    clearInterval(this.timerInterval);
+    this.timerInterval = null;
+
+    if (this.phase === 'work') {
+      // End work session early, show rating
+      if (this.currentSession) {
+        this.currentSession.duration = Math.round(this.currentSession.duration);
+        Storage.saveSession({ ...this.currentSession });
+      }
+      this.state = TimerState.OVERTIME;
+      this.overtime = 0;
+      this.remaining = 0;
+      this.updateUI();
+      this.updateTitle();
+      showToast('Session ended early', 'warning');
+    } else {
+      // End break early
+      if (this.currentBreak) {
+        this.currentBreak.duration = Math.round(this.currentBreak.duration);
+        Storage.saveSession({ ...this.currentBreak });
+      }
+      this.state = TimerState.IDLE;
+      this.phase = 'work';
+      this.overtime = 0;
+      this._lastOtSecond = -1;
+      this.currentBreak = null;
+      this.updateUI();
+      this.updateTitle();
+      showToast('Break skipped', 'info');
+    }
+  },
+
+  reset() {
+    clearInterval(this.timerInterval);
+    this.timerInterval = null;
+    this.state = TimerState.IDLE;
+    this.phase = 'work';
+    this.remaining = 0;
+    this.overtime = 0;
+    this._lastOtSecond = -1;
+    this.currentSession = null;
+    this.currentBreak = null;
+    this.updateUI();
+    this.updateTitle();
+    showToast('Timer reset', 'info');
+  },
+
   },
 
   startWork() {
@@ -647,29 +734,23 @@ const App = {
     const isRunning = this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING;
     const isPaused = this.state === TimerState.PAUSED || this.state === TimerState.BREAK_PAUSED;
     const isIdle = this.state === TimerState.IDLE;
-    const isOvertime = this.state === TimerState.OVERTIME;
+    const isOvertime = this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME;
 
-    // Buttons
-    this.els.playBtn.disabled = isRunning || isOvertime;
-    this.els.pauseBtn.disabled = !isRunning;
+    // Buttons - single play/pause button
+    this.els.playPauseBtn.disabled = false;
     this.els.resetBtn.disabled = isIdle && !isOvertime;
     this.els.skipBtn.disabled = isIdle;
 
-    // Play button state
-    if (isPaused) {
-      this.els.playBtn.innerHTML = `
-        <svg class="control-icon" viewBox="0 0 24 24" fill="currentColor">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        <span>Resume</span>
-      `;
+    // Play/Pause button state
+    if (isRunning) {
+      this.els.playPauseIcon.innerHTML = `<svg class="control-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+      this.els.playPauseLabel.textContent = 'Pause';
+    } else if (isPaused) {
+      this.els.playPauseIcon.innerHTML = `<svg class="control-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+      this.els.playPauseLabel.textContent = 'Resume';
     } else {
-      this.els.playBtn.innerHTML = `
-        <svg class="control-icon" viewBox="0 0 24 24" fill="currentColor">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        <span>Start</span>
-      `;
+      this.els.playPauseIcon.innerHTML = `<svg class="control-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+      this.els.playPauseLabel.textContent = 'Start';
     }
 
     // Timer container classes
@@ -1038,8 +1119,8 @@ const App = {
         e.preventDefault();
         this.reset();
         break;
-      case 'e':
-      case 'E':
+      case 's':
+      case 'S':
         e.preventDefault();
         this.skip();
         break;
