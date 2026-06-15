@@ -1,11 +1,11 @@
 const CACHE_NAME = 'pomosive-v2';
 const urlsToCache = [
-  '/?v=2',
-  '/index.html?v=2',
-  '/style.css?v=2',
-  '/app.js?v=2',
-  '/storage.js?v=2',
-  '/chart.js?v=2'
+  '/',
+  '/index.html',
+  '/style.css',
+  '/app.js',
+  '/storage.js',
+  '/chart.js'
 ];
 
 self.addEventListener('install', (e) => {

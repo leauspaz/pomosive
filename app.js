@@ -131,7 +131,7 @@ function calcBreakDuration(workDuration, rating) {
 
 function getRatingColor(rating) {
   const colors = {
-    distracted: '#800020',
+    distracted: '#6B1A3A',
     okay: '#f39c12',
     focused: '#3498db',
     flow: '#27ae60'
@@ -183,6 +183,8 @@ const App = {
   timerInterval: null,
   tickInterval: null,
   lastTickSecond: -1,
+  _timerEnded: false,
+  _lastOtSecond: -1,
 
   // DOM refs
   els: {},
@@ -219,6 +221,7 @@ const App = {
       resetBtn: document.getElementById('resetBtn'),
       skipBtn: document.getElementById('skipBtn'),
       blockDuration: document.getElementById('blockDuration'),
+      blockInput: document.getElementById('blockInput'),
       breakDuration: document.getElementById('breakDuration'),
       todayTotal: document.getElementById('todayTotal'),
       streakCount: document.getElementById('streakCount'),
@@ -306,6 +309,37 @@ const App = {
       if (e.target === this.els.dataModal) this.hideDataModal();
     });
 
+    // Block duration input - click to edit
+    const blockWrapper = document.getElementById('blockInputWrapper');
+    if (blockWrapper && this.els.blockInput) {
+      blockWrapper.addEventListener('click', (e) => {
+        if (this.state !== TimerState.IDLE) return;
+        if (e.target === this.els.blockInput) return;
+        this.els.blockDuration.style.display = 'none';
+        this.els.blockInput.style.display = 'block';
+        this.els.blockInput.value = this.lastBlockDuration;
+        this.els.blockInput.focus();
+        this.els.blockInput.select();
+      });
+
+      this.els.blockInput.addEventListener('blur', () => {
+        const val = parseInt(this.els.blockInput.value);
+        if (val && val >= 1 && val <= 90) {
+          this.lastBlockDuration = val;
+          Settings.lastBlockDuration = val;
+          this.els.blockDuration.textContent = `${val} min`;
+        }
+        this.els.blockInput.style.display = 'none';
+        this.els.blockDuration.style.display = 'block';
+      });
+
+      this.els.blockInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          this.els.blockInput.blur();
+        }
+      });
+    }
+
     // Sound init on first interaction
     document.addEventListener('click', () => AudioEngine.init(), { once: true });
   },
@@ -329,6 +363,7 @@ const App = {
     this.totalDuration = duration * 60;
     this.remaining = this.totalDuration;
     this.overtime = 0;
+    this._lastOtSecond = -1;
     this.phase = 'work';
     this.state = TimerState.RUNNING;
     this.timerStartTime = Date.now();
@@ -372,6 +407,8 @@ const App = {
     this.overtime = 0;
     this.phase = 'break';
     this.state = TimerState.BREAK_RUNNING;
+    this.overtime = 0;
+    this._lastOtSecond = -1;
     this.timerStartTime = Date.now();
 
     this.currentBreak = {
@@ -393,20 +430,23 @@ const App = {
 
   startTimer() {
     this.lastTickSecond = -1;
+    this.timerStartTime = Date.now();
     this.timerInterval = setInterval(() => this.tick(), 100);
   },
 
   tick() {
-    if (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING) {
-      this.remaining -= 0.1;
+    const now = Date.now();
+    const elapsedSinceStart = (now - this.timerStartTime) / 1000;
 
-      if (this.phase === 'work') {
-        this.currentSession.duration += 0.1;
-      } else {
-        this.currentBreak.duration += 0.1;
+    if (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING) {
+      this.remaining = Math.max(0, this.totalDuration - elapsedSinceStart);
+
+      if (this.phase === 'work' && this.currentSession) {
+        this.currentSession.duration = elapsedSinceStart;
+      } else if (this.phase === 'break' && this.currentBreak) {
+        this.currentBreak.duration = elapsedSinceStart;
       }
 
-      // Tick sound every second
       const currentSecond = Math.floor(this.remaining);
       if (currentSecond !== this.lastTickSecond && currentSecond <= 5 && currentSecond > 0) {
         AudioEngine.playTick();
@@ -414,173 +454,77 @@ const App = {
       }
 
       if (this.remaining <= 0) {
-        this.remaining = 0;
         this.handleTimerEnd();
+        return;
       }
 
       this.updateTimerDisplay();
       this.updateProgressRing();
       this.updateTitle();
-    } else if (this.state === TimerState.OVERTIME) {
-      this.overtime += 0.1;
-      this.currentSession.overtime = this.overtime;
-      this.currentSession.duration += 0.1;
+    } else if (this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME) {
+      this.overtime = elapsedSinceStart;
 
-      // Overtime tick every 5 seconds
-      if (Math.floor(this.overtime) % 5 === 0 && Math.floor(this.overtime) !== Math.floor(this.overtime - 0.1)) {
+      if (this.phase === 'work' && this.currentSession) {
+        this.currentSession.overtime = this.overtime;
+        this.currentSession.duration = this.totalDuration + this.overtime;
+      } else if (this.phase === 'break' && this.currentBreak) {
+        this.currentBreak.overtime = this.overtime;
+        this.currentBreak.duration = this.totalDuration + this.overtime;
+      }
+
+      const otSecond = Math.floor(this.overtime);
+      if (otSecond !== this._lastOtSecond && otSecond > 0 && otSecond % 5 === 0) {
         AudioEngine.playOvertime();
+        this._lastOtSecond = otSecond;
       }
 
       this.updateTimerDisplay();
+      this.updateProgressRing();
       this.updateTitle();
     }
   },
 
   handleTimerEnd() {
+    if (this._timerEnded) return;
+    this._timerEnded = true;
     clearInterval(this.timerInterval);
 
     if (this.phase === 'work') {
       this.state = TimerState.OVERTIME;
       this.overtime = 0;
+      this.remaining = 0;
       AudioEngine.playEnd();
       showToast('Work block complete! Keep going or rate your session.', 'warning');
 
-      // Auto-save partial session
-      this.currentSession.duration = Math.round(this.currentSession.duration);
-      Storage.saveSession({ ...this.currentSession });
-
-      this.updateUI();
-      this.updateTitle();
-    } else {
-      // Break ended
-      this.currentBreak.duration = Math.round(this.currentBreak.duration);
-      Storage.saveSession({ ...this.currentBreak });
-
-      this.state = TimerState.IDLE;
-      this.phase = 'work';
-      this.overtime = 0;
-      AudioEngine.playStart();
-      showToast('Break over! Ready to work.', 'info');
-      this.updateUI();
-      this.updateTitle();
-      this.renderSessionsList();
-      this.updateStats();
-      updateChart(document.querySelector('.stats-tab.active')?.dataset.view || 'today', 'bar');
-    }
-  },
-
-  pause() {
-    if (this.state === TimerState.RUNNING || this.state === TimerState.OVERTIME) {
-      this.state = TimerState.PAUSED;
-      clearInterval(this.timerInterval);
-      this.updateUI();
-      this.updateTitle();
-      showToast('Paused', 'info');
-    } else if (this.state === TimerState.BREAK_RUNNING || this.state === TimerState.BREAK_OVERTIME) {
-      this.state = TimerState.BREAK_PAUSED;
-      clearInterval(this.timerInterval);
-      this.updateUI();
-      this.updateTitle();
-      showToast('Break paused', 'info');
-    }
-  },
-
-  resume() {
-    if (this.state === TimerState.PAUSED) {
-      if (this.phase === 'work' && this.overtime > 0) {
-        this.state = TimerState.OVERTIME;
-      } else if (this.phase === 'break' && this.overtime > 0) {
-        this.state = TimerState.BREAK_OVERTIME;
-      } else {
-        this.state = TimerState.RUNNING;
-      }
-      this.timerStartTime = Date.now() - (this.totalDuration + this.overtime) * 1000;
-      this.startTimer();
-      this.updateUI();
-      this.updateTitle();
-    }
-  },
-
-  resumeBreak() {
-    if (this.state === TimerState.BREAK_PAUSED) {
-      if (this.overtime > 0) {
-        this.state = TimerState.BREAK_OVERTIME;
-      } else {
-        this.state = TimerState.BREAK_RUNNING;
-      }
-      this.timerStartTime = Date.now() - (this.totalDuration + this.overtime) * 1000;
-      this.startTimer();
-      this.updateUI();
-      this.updateTitle();
-    }
-  },
-
-  reset() {
-    clearInterval(this.timerInterval);
-
-    if (this.currentSession && this.currentSession.duration > 0) {
-      this.currentSession.duration = Math.round(this.currentSession.duration);
-      this.currentSession.overtime = Math.round(this.overtime);
-      Storage.saveSession({ ...this.currentSession });
-    }
-    if (this.currentBreak && this.currentBreak.duration > 0) {
-      this.currentBreak.duration = Math.round(this.currentBreak.duration + this.overtime);
-      this.currentBreak.overtime = Math.round(this.overtime);
-      Storage.saveSession({ ...this.currentBreak });
-    }
-
-    this.state = TimerState.IDLE;
-    this.phase = 'work';
-    this.remaining = 0;
-    this.overtime = 0;
-    this.totalDuration = 0;
-    this.currentSession = null;
-    this.currentBreak = null;
-
-    this.updateUI();
-    this.updateTitle();
-    this.renderSessionsList();
-    this.updateStats();
-    updateChart(document.querySelector('.stats-tab.active')?.dataset.view || 'today', 'bar');
-    showToast('Reset', 'info');
-  },
-
-  skip() {
-    clearInterval(this.timerInterval);
-
-    if (this.phase === 'work') {
-      // Save current work session
       if (this.currentSession) {
         this.currentSession.duration = Math.round(this.currentSession.duration);
-        this.currentSession.overtime = Math.round(this.overtime);
         Storage.saveSession({ ...this.currentSession });
       }
 
-      // Show rating overlay
-      this.state = TimerState.RATING;
-      this.showRatingOverlay();
+      this.timerStartTime = Date.now();
+      this._timerEnded = false;
+      this.startTimer();
+      this.updateUI();
+      this.updateTitle();
     } else {
-      // Skip break
+      this.state = TimerState.BREAK_OVERTIME;
+      this.overtime = 0;
+      this.remaining = 0;
+      AudioEngine.playEnd();
+      showToast('Break over! Ready to work.', 'info');
+
       if (this.currentBreak) {
         this.currentBreak.duration = Math.round(this.currentBreak.duration);
         Storage.saveSession({ ...this.currentBreak });
       }
 
-      this.state = TimerState.IDLE;
-      this.phase = 'work';
-      this.overtime = 0;
+      this.timerStartTime = Date.now();
+      this._timerEnded = false;
+      this.startTimer();
       this.updateUI();
       this.updateTitle();
-      this.renderSessionsList();
-      this.updateStats();
-      updateChart(document.querySelector('.stats-tab.active')?.dataset.view || 'today', 'bar');
-      showToast('Break skipped', 'info');
     }
   },
-
-  // ============================================
-  // RATING
-  // ============================================
 
   showRatingOverlay() {
     const duration = Math.round(this.currentSession?.duration || 0);
@@ -663,6 +607,7 @@ const App = {
 
     this.currentSession = null;
     this.overtime = 0;
+    this._lastOtSecond = -1;
 
     // Start break
     this.startBreak();
@@ -781,8 +726,7 @@ const App = {
     const circumference = 339.292;
     let progress;
 
-    if (this.state === TimerState.OVERTIME) {
-      // Pulsing effect handled by CSS, keep full
+    if (this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME) {
       progress = 0;
     } else if (this.totalDuration > 0) {
       progress = (this.remaining / this.totalDuration) * circumference;
@@ -1095,8 +1039,8 @@ const App = {
         e.preventDefault();
         this.reset();
         break;
-      case 's':
-      case 'S':
+      case 'e':
+      case 'E':
         e.preventDefault();
         this.skip();
         break;
