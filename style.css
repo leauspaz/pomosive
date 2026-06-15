@@ -64,9 +64,9 @@ html.light {
   --border-color: rgba(0, 0, 0, 0.06);
   --border-hover: rgba(0, 0, 0, 0.12);
 
-  --accent-color: #1a1a2e;
-  --accent-hover: #33334d;
-  --accent-muted: rgba(26, 26, 46, 0.1);
+  --accent-color: #ffffff;
+  --accent-hover: #cccccc;
+  --accent-muted: rgba(255, 255, 255, 0.1);
 }
 
 /* ============================================
@@ -175,12 +175,6 @@ body {
 }
 
 .icon-btn.active {
-  color: var(--accent-color);
-  background: var(--accent-muted);
-  border-color: var(--accent-color);
-}
-
-html.light .icon-btn.active {
   color: var(--accent-color);
   background: var(--accent-muted);
   border-color: var(--accent-color);
@@ -350,18 +344,22 @@ html.light .icon-btn.active {
 
 .control-btn--primary {
   background: var(--accent-color);
-  color: var(--bg-primary);
+  color: white;
   border-color: var(--accent-color);
 }
 
 .control-btn--primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .control-icon {
   width: 18px;
   height: 18px;
+}
+
+.control-btn--primary .control-icon {
+  color: var(--bg-primary);
 }
 
 /* Timer Info */
@@ -392,10 +390,23 @@ html.light .icon-btn.active {
 .info-item--clickable {
   cursor: pointer;
   position: relative;
+  background: var(--accent-color);
+  color: var(--bg-primary);
+  border-color: var(--accent-color);
 }
 
 .info-item--clickable:hover {
-  border-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.info-item--clickable .info-label {
+  color: var(--bg-primary);
+  opacity: 0.7;
+}
+
+.info-item--clickable .info-value {
+  color: var(--bg-primary);
 }
 
 .info-input {
@@ -545,7 +556,7 @@ html.light .icon-btn.active {
 .rating-icon--focused { background: rgba(52, 152, 219, 0.15); color: #3498db; }
 .rating-icon--flow { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
 
-.rating-btn.selected .rating-icon--distracted { background: #ffffff; color: var(--bg-primary); }
+.rating-btn.selected .rating-icon--distracted { background: #ffffff; color: white; }
 .rating-btn.selected .rating-icon--okay { background: #f39c12; color: white; }
 .rating-btn.selected .rating-icon--focused { background: #3498db; color: white; }
 .rating-btn.selected .rating-icon--flow { background: #27ae60; color: white; }
@@ -634,7 +645,7 @@ html.light .icon-btn.active {
 
 .preset-btn.selected {
   background: var(--accent-color);
-  color: var(--bg-primary);
+  color: #000000;
   border-color: var(--accent-color);
 }
 
@@ -723,11 +734,10 @@ html.light .icon-btn.active {
 
 .btn--primary {
   background: var(--accent-color);
-  color: var(--bg-primary);
+  color: white;
 }
 
 .btn--primary:hover {
-  background: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }

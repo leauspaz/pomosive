@@ -13,6 +13,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <meta property="og:title" content="Pomosive - Adaptive Focus Timer">
+  <meta property="og:description" content="Adaptive Pomodoro timer that learns from your focus patterns">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://leauspaz.github.io/pomosive/">
+  <meta property="og:image" content="https://leauspaz.github.io/pomosive/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Pomosive">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://leauspaz.github.io/pomosive/og-image.png">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%230a0a0f'/%3E%3Ccircle cx='96' cy='96' r='70' fill='none' stroke='%23ffffff' stroke-width='12'/%3E%3Ccircle cx='96' cy='96' r='12' fill='%23ffffff'/%3E%3Cline x1='96' y1='96' x2='96' y2='40' stroke='%23ffffff' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E">
 </head>
 <body>
   <div class="app">
@@ -320,7 +334,7 @@
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(console.error);
+      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(console.error);
     }
   </script>
 </body>

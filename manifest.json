@@ -2,18 +2,19 @@
   "name": "Pomosive",
   "short_name": "Pomosive",
   "description": "Adaptive focus timer that learns from you",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0a0a0f",
-  "theme_color": "#e74c3c",
+  "theme_color": "#0a0a0f",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%230a0a0f'/%3E%3Ccircle cx='96' cy='96' r='70' fill='none' stroke='%23e74c3c' stroke-width='12'/%3E%3Ccircle cx='96' cy='96' r='12' fill='%23e74c3c'/%3E%3Cline x1='96' y1='96' x2='96' y2='40' stroke='%23e74c3c' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%230a0a0f'/%3E%3Ccircle cx='96' cy='96' r='70' fill='none' stroke='%23ffffff' stroke-width='12'/%3E%3Ccircle cx='96' cy='96' r='12' fill='%23ffffff'/%3E%3Cline x1='96' y1='96' x2='96' y2='40' stroke='%23ffffff' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E",
       "sizes": "192x192",
       "type": "image/svg+xml"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='48' fill='%230a0a0f'/%3E%3Ccircle cx='256' cy='256' r='180' fill='none' stroke='%23e74c3c' stroke-width='28'/%3E%3Ccircle cx='256' cy='256' r='28' fill='%23e74c3c'/%3E%3Cline x1='256' y1='256' x2='256' y2='100' stroke='%23e74c3c' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='48' fill='%230a0a0f'/%3E%3Ccircle cx='256' cy='256' r='180' fill='none' stroke='%23ffffff' stroke-width='28'/%3E%3Ccircle cx='256' cy='256' r='28' fill='%23ffffff'/%3E%3Cline x1='256' y1='256' x2='256' y2='100' stroke='%23ffffff' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml"
     }

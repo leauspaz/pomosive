@@ -161,7 +161,8 @@ const TimerState = {
   RATING: 'rating',
   BREAK: 'break',
   BREAK_RUNNING: 'break_running',
-  BREAK_PAUSED: 'break_paused'
+  BREAK_PAUSED: 'break_paused',
+  BREAK_OVERTIME: 'break_overtime'
 };
 
 const App = {
@@ -348,6 +349,12 @@ const App = {
   togglePlayPause() {
     if (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING) {
       this.pause();
+    } else if (this.state === TimerState.OVERTIME) {
+      // In overtime, clicking pause/show rating
+      this.showRatingOverlay();
+    } else if (this.state === TimerState.BREAK_OVERTIME) {
+      // In break overtime, skip to next work session
+      this.skip();
     } else {
       this.play();
     }
@@ -400,17 +407,34 @@ const App = {
     this.timerInterval = null;
 
     if (this.phase === 'work') {
+      // End work session - show rating popup
       if (this.currentSession) {
+        // Save the full duration including overtime
         this.currentSession.duration = Math.round(this.currentSession.duration);
+        this.currentSession.overtime = Math.round(this.overtime);
         Storage.saveSession({ ...this.currentSession });
       }
-      this.state = TimerState.OVERTIME;
-      this.overtime = 0;
+
+      // Reset timer display to Ready 00:00
+      this.state = TimerState.IDLE;
+      this.phase = 'work';
       this.remaining = 0;
+      this.overtime = 0;
+      this._lastOtSecond = -1;
+
+      // Show rating overlay
+      this.showRatingOverlay();
+
       this.updateUI();
       this.updateTitle();
-      showToast('Session ended early', 'warning');
+
+      if (this.overtime > 0) {
+        showToast('Overtime finished', 'info');
+      } else {
+        showToast('Session ended', 'info');
+      }
     } else {
+      // End break early
       if (this.currentBreak) {
         this.currentBreak.duration = Math.round(this.currentBreak.duration);
         Storage.saveSession({ ...this.currentBreak });
@@ -438,7 +462,7 @@ const App = {
     this.currentBreak = null;
     this.updateUI();
     this.updateTitle();
-      showToast('Timer reset', 'info');
+    showToast('Timer reset', 'info');
   },
 
   startWork() {
@@ -573,23 +597,29 @@ const App = {
 
   handleTimerEnd() {
     if (this.phase === 'work') {
-      this.state = TimerState.OVERTIME;
-      this.overtime = 0;
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
       this.remaining = 0;
+      this.overtime = 0;
       AudioEngine.playEnd();
-      showToast('Work block complete! Keep going or rate your session.', 'warning');
+      showToast('Work block complete!', 'success');
 
+      // Save the completed session
       if (this.currentSession) {
         this.currentSession.duration = Math.round(this.currentSession.duration);
+        this.currentSession.overtime = 0;
         Storage.saveSession({ ...this.currentSession });
       }
 
+      // Show rating overlay immediately
+      this.showRatingOverlay();
       this.updateUI();
       this.updateTitle();
     } else {
-      this.state = TimerState.BREAK_OVERTIME;
-      this.overtime = 0;
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
       this.remaining = 0;
+      this.overtime = 0;
       AudioEngine.playEnd();
       showToast('Break over! Ready to work.', 'info');
 
@@ -598,6 +628,9 @@ const App = {
         Storage.saveSession({ ...this.currentBreak });
       }
 
+      this.state = TimerState.IDLE;
+      this.phase = 'work';
+      this.currentBreak = null;
       this.updateUI();
       this.updateTitle();
     }
@@ -732,11 +765,12 @@ const App = {
     const isPaused = this.state === TimerState.PAUSED || this.state === TimerState.BREAK_PAUSED;
     const isIdle = this.state === TimerState.IDLE;
     const isOvertime = this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME;
+    const isRating = this.state === TimerState.RATING;
 
     // Buttons - single play/pause button
     this.els.playPauseBtn.disabled = false;
-    this.els.resetBtn.disabled = isIdle && !isOvertime;
-    this.els.skipBtn.disabled = isIdle;
+    this.els.resetBtn.disabled = isIdle && !isOvertime && !isRating;
+    this.els.skipBtn.disabled = isIdle || isRating;
 
     // Play/Pause button state
     if (isRunning) {
@@ -745,6 +779,9 @@ const App = {
     } else if (isPaused) {
       this.els.playPauseIcon.innerHTML = `<svg class="control-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
       this.els.playPauseLabel.textContent = 'Resume';
+    } else if (isOvertime) {
+      this.els.playPauseIcon.innerHTML = `<svg class="control-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+      this.els.playPauseLabel.textContent = 'Rate';
     } else {
       this.els.playPauseIcon.innerHTML = `<svg class="control-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
       this.els.playPauseLabel.textContent = 'Start';
