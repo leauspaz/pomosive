@@ -348,9 +348,7 @@ const App = {
   togglePlayPause() {
     if (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING) {
       this.pause();
-    } else if (this.state === TimerState.OVERTIME) {
-      this.showRatingOverlay();
-    } else if (this.state === TimerState.BREAK_OVERTIME) {
+    } else if (this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME) {
       this.skip();
     } else {
       this.play();
@@ -408,14 +406,14 @@ const App = {
     this.timerInterval = null;
 
     if (this.phase === 'work') {
-      // End work session - show rating popup
+      // End work session - save and show rating
       if (this.currentSession) {
         this.currentSession.duration = Math.round(this.currentSession.duration);
         this.currentSession.overtime = Math.round(this.overtime || 0);
         Storage.saveSession({ ...this.currentSession });
       }
 
-      // Reset timer display to Ready 00:00
+      // Reset timer to idle
       this.state = TimerState.IDLE;
       this.phase = 'work';
       this.remaining = 0;
@@ -599,40 +597,32 @@ const App = {
 
   handleTimerEnd() {
     if (this.phase === 'work') {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-      this.remaining = 0;
+      this.state = TimerState.OVERTIME;
       this.overtime = 0;
+      this.remaining = 0;
+      this._lastOtSecond = -1;
       AudioEngine.playEnd();
-      showToast('Work block complete!', 'success');
+      showToast('Work block complete! Tap Rate to finish.', 'warning');
 
-      // Save the completed session
+      // Keep session alive for overtime tracking
       if (this.currentSession) {
         this.currentSession.duration = Math.round(this.currentSession.duration);
-        this.currentSession.overtime = 0;
-        Storage.saveSession({ ...this.currentSession });
       }
 
-      // Show rating overlay immediately
-      this.showRatingOverlay();
       this.updateUI();
       this.updateTitle();
     } else {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-      this.remaining = 0;
+      this.state = TimerState.BREAK_OVERTIME;
       this.overtime = 0;
+      this.remaining = 0;
+      this._lastOtSecond = -1;
       AudioEngine.playEnd();
       showToast('Break over! Ready to work.', 'info');
 
       if (this.currentBreak) {
         this.currentBreak.duration = Math.round(this.currentBreak.duration);
-        Storage.saveSession({ ...this.currentBreak });
       }
 
-      this.state = TimerState.IDLE;
-      this.phase = 'work';
-      this.currentBreak = null;
       this.updateUI();
       this.updateTitle();
     }
