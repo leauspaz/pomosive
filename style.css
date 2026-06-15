@@ -1224,6 +1224,12 @@ kbd {
     display: none;
   }
 
+  .control-btn .control-icon-wrap {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
   .control-btn {
     min-width: 56px;
     padding: 14px;
@@ -1342,6 +1348,7 @@ kbd {
   .stats-grid .stat-card {
     flex: 1 1 calc(50% - 6px);
     min-width: 120px;
+    box-sizing: border-box;
   }
 
   @supports (display: grid) {

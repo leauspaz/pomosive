@@ -350,6 +350,10 @@ const App = {
       this.pause();
     } else if (this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME) {
       this.skip();
+    } else if (this.state === TimerState.PAUSED) {
+      this.resume();
+    } else if (this.state === TimerState.BREAK_PAUSED) {
+      this.resumeBreak();
     } else {
       this.play();
     }
@@ -360,7 +364,7 @@ const App = {
       this.state = TimerState.PAUSED;
       clearInterval(this.timerInterval);
       this.timerInterval = null;
-      // Store the elapsed time so we can resume from here
+      // Store elapsed time so we can resume exactly from here
       this.pausedElapsed = (Date.now() - this.timerStartTime) / 1000;
       this.updateUI();
       this.updateTitle();
@@ -379,7 +383,7 @@ const App = {
   resume() {
     if (this.state === TimerState.PAUSED) {
       this.state = TimerState.RUNNING;
-      // Resume from where we paused by adjusting timerStartTime
+      // Resume from exact paused point by adjusting timerStartTime
       this.timerStartTime = Date.now() - this.pausedElapsed * 1000;
       this.startTimer();
       this.updateUI();
@@ -432,7 +436,7 @@ const App = {
         showToast('Session ended', 'info');
       }
     } else {
-      // End break - reset to idle and ready for next work
+      // End break - reset to idle
       if (this.currentBreak) {
         this.currentBreak.duration = Math.round(this.currentBreak.duration);
         Storage.saveSession({ ...this.currentBreak });
@@ -584,7 +588,8 @@ const App = {
       }
 
       const otSecond = Math.floor(this.overtime);
-      if (otSecond !== this._lastOtSecond && otSecond > 0 && otSecond % 5 === 0) {
+      // Play sound at exactly 5, 10, 15, 20... seconds of overtime
+      if (otSecond > 0 && otSecond % 5 === 0 && otSecond !== this._lastOtSecond) {
         AudioEngine.playOvertime();
         this._lastOtSecond = otSecond;
       }
@@ -604,7 +609,6 @@ const App = {
       AudioEngine.playEnd();
       showToast('Work block complete! Tap Rate to finish.', 'warning');
 
-      // Keep session alive for overtime tracking
       if (this.currentSession) {
         this.currentSession.duration = Math.round(this.currentSession.duration);
       }
