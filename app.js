@@ -131,7 +131,7 @@ function calcBreakDuration(workDuration, rating) {
 
 function getRatingColor(rating) {
   const colors = {
-    distracted: '#6B1A3A',
+    distracted: '#ffffff',
     okay: '#f39c12',
     focused: '#3498db',
     flow: '#27ae60'
@@ -183,7 +183,6 @@ const App = {
   timerInterval: null,
   tickInterval: null,
   lastTickSecond: -1,
-  _timerEnded: false,
   _lastOtSecond: -1,
 
   // DOM refs
@@ -367,6 +366,7 @@ const App = {
     this.phase = 'work';
     this.state = TimerState.RUNNING;
     this.timerStartTime = Date.now();
+    this.timerInterval = null;
 
     this.currentSession = {
       id: generateId(),
@@ -410,6 +410,7 @@ const App = {
     this.overtime = 0;
     this._lastOtSecond = -1;
     this.timerStartTime = Date.now();
+    this.timerInterval = null;
 
     this.currentBreak = {
       id: generateId(),
@@ -430,21 +431,22 @@ const App = {
 
   startTimer() {
     this.lastTickSecond = -1;
+    this._lastOtSecond = -1;
     this.timerStartTime = Date.now();
     this.timerInterval = setInterval(() => this.tick(), 100);
   },
 
   tick() {
     const now = Date.now();
-    const elapsedSinceStart = (now - this.timerStartTime) / 1000;
 
     if (this.state === TimerState.RUNNING || this.state === TimerState.BREAK_RUNNING) {
-      this.remaining = Math.max(0, this.totalDuration - elapsedSinceStart);
+      const elapsed = (now - this.timerStartTime) / 1000;
+      this.remaining = Math.max(0, this.totalDuration - elapsed);
 
       if (this.phase === 'work' && this.currentSession) {
-        this.currentSession.duration = elapsedSinceStart;
+        this.currentSession.duration = elapsed;
       } else if (this.phase === 'break' && this.currentBreak) {
-        this.currentBreak.duration = elapsedSinceStart;
+        this.currentBreak.duration = elapsed;
       }
 
       const currentSecond = Math.floor(this.remaining);
@@ -462,7 +464,8 @@ const App = {
       this.updateProgressRing();
       this.updateTitle();
     } else if (this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME) {
-      this.overtime = elapsedSinceStart;
+      const elapsed = (now - this.timerStartTime) / 1000;
+      this.overtime = Math.max(0, elapsed - this.totalDuration);
 
       if (this.phase === 'work' && this.currentSession) {
         this.currentSession.overtime = this.overtime;
@@ -485,10 +488,6 @@ const App = {
   },
 
   handleTimerEnd() {
-    if (this._timerEnded) return;
-    this._timerEnded = true;
-    clearInterval(this.timerInterval);
-
     if (this.phase === 'work') {
       this.state = TimerState.OVERTIME;
       this.overtime = 0;
@@ -501,9 +500,6 @@ const App = {
         Storage.saveSession({ ...this.currentSession });
       }
 
-      this.timerStartTime = Date.now();
-      this._timerEnded = false;
-      this.startTimer();
       this.updateUI();
       this.updateTitle();
     } else {
@@ -518,9 +514,6 @@ const App = {
         Storage.saveSession({ ...this.currentBreak });
       }
 
-      this.timerStartTime = Date.now();
-      this._timerEnded = false;
-      this.startTimer();
       this.updateUI();
       this.updateTitle();
     }
@@ -586,9 +579,10 @@ const App = {
       Settings.dailyFlowTime = Settings.dailyFlowTime + sessionDuration;
     }
 
-    // Calculate next block
+    // Calculate next block using TOTAL session time (including overtime)
+    const totalSessionMinutes = Math.ceil((this.currentSession?.duration || this.lastBlockDuration * 60) / 60);
     const nextBlock = calcNextBlock(
-      this.lastBlockDuration,
+      totalSessionMinutes,
       rating,
       Settings.dailyWorkTime / 60
     );
@@ -710,10 +704,15 @@ const App = {
 
   updateTimerDisplay() {
     let totalSeconds;
-    if (this.state === TimerState.OVERTIME) {
-      totalSeconds = Math.floor(this.overtime);
+    if (this.state === TimerState.OVERTIME || this.state === TimerState.BREAK_OVERTIME) {
+      totalSeconds = Math.max(1, Math.ceil(this.overtime));
       this.els.timerTime.textContent = this.formatTime(totalSeconds);
-      this.els.timerOvertime.textContent = `+${this.formatTime(totalSeconds)}`;
+      this.els.timerOvertime.textContent = `+${this.formatTime(totalSeconds)} overtime`;
+      this.els.timerOvertime.classList.add('visible');
+    } else if (this.state === TimerState.PAUSED && this.overtime > 0) {
+      totalSeconds = Math.max(1, Math.ceil(this.overtime));
+      this.els.timerTime.textContent = this.formatTime(totalSeconds);
+      this.els.timerOvertime.textContent = `+${this.formatTime(totalSeconds)} (paused)`;
       this.els.timerOvertime.classList.add('visible');
     } else {
       totalSeconds = Math.max(0, Math.ceil(this.remaining));
