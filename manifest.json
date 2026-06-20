@@ -1,22 +1,27 @@
 {
-  "name": "Pomosive",
+  "name": "Pomosive Pomodoro Timer",
   "short_name": "Pomosive",
-  "description": "Adaptive focus timer that learns from you",
-  "start_url": "./",
-  "scope": "./",
+  "description": "Progressive Pomodoro Focus Timer that adapts based on focus state",
+  "start_url": "./index.html",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#0a0a0f",
+  "orientation": "any",
+  "categories": ["productivity", "utilities"],
+  "lang": "en",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='24' fill='%230a0a0f'/%3E%3Ccircle cx='96' cy='96' r='70' fill='none' stroke='%23ffffff' stroke-width='12'/%3E%3Ccircle cx='96' cy='96' r='12' fill='%23ffffff'/%3E%3Cline x1='96' y1='96' x2='96' y2='40' stroke='%23ffffff' stroke-width='10' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='48' fill='%230a0a0f'/%3E%3Ccircle cx='256' cy='256' r='180' fill='none' stroke='%23ffffff' stroke-width='28'/%3E%3Ccircle cx='256' cy='256' r='28' fill='%23ffffff'/%3E%3Cline x1='256' y1='256' x2='256' y2='100' stroke='%23ffffff' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
