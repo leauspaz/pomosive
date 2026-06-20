@@ -693,7 +693,7 @@ const App = {
     }
 
     // Calculate next block using TOTAL session time (including overtime)
-    const totalSessionMinutes = Math.ceil((this.currentSession?.duration || this.lastBlockDuration * 60) / 60);
+    const totalSessionMinutes = Math.ceil(this.currentSession.intendedDuration / 60);
     const nextBlock = calcNextBlock(
       totalSessionMinutes,
       rating,
